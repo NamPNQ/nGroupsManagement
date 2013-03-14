@@ -1,0 +1,61 @@
+{% load compress %}
+<!-- skeleton code for using bootstrap in html -->
+<!DOCTYPE html>
+{% load static from staticfiles %}
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="nampnq">
+    {% block meta %}{% endblock %}
+
+    <title> {% block title %} {% endblock title %} | NamPNQ Groups Management </title>
+
+    {% compress css %}
+    <!-- Le styles de bootstrap -->
+    <link rel="stylesheet" href="{% static "css/bootstrap.min.css" %}" type="text/css" />
+    <link rel="stylesheet" href="{% static "css/bootstrap-responsive.min.css" %}" type="text/css" />
+    {% endcompress %}
+    <!-- Google Font Lib -->
+    <link href='http://fonts.googleapis.com/css?family=Dancing+Script:700,400' rel='stylesheet' type='text/css'>
+    
+    <!-- Your own css file -->
+    <style type="text/css">{% block css %} {% endblock css %}</style>
+
+    <!-- js files -->
+    <script src="{% static "js/jquery.min.js" %}"></script>
+
+    {% block csslink %} {% endblock csslink %}
+    {% block js-head %} {% endblock js-head %}
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="{% static 'ico/favicon.ico' %}" />
+    {% block icon %} {% endblock icon %}
+  </head>
+
+  <body style="min-width:995px;">
+    {% block navbar %}{% endblock %}
+    <div class="container-fluid">
+
+        <h1>{% block content_title %}{% endblock %}</h1>
+        {% block content %}{% endblock %}
+        <hr>
+
+        <footer>
+            <p>&copy; <a herf="http://nampnq.info" title="Phạm Ngọc Quang Nam">NamPNQ Product</a> 2013</p>
+        </footer>
+
+    </div>
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="{% static "js/bootstrap.min.js" %}"></script>
+    <script src="{% static "js/jquery.tinyscrollbar.min.js" %}"></script>
+    {% block js %}{% endblock %}
+  </body>
+</html>

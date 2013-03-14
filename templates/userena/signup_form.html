@@ -1,0 +1,82 @@
+{% extends 'userena/base_userena.html' %}
+{% load i18n %}
+{% load static from staticfiles %}
+
+{% block title %}{% trans "Signup" %}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row-fluid">
+    <div class="span8 well well-small">
+      <img src="/static/img/signin-page-img.jpg" alt="sign in page image" />
+    </div>
+    <div class="span4 well well-small">
+        <form action="" method="post">
+          {% csrf_token %}
+          <fieldset>
+            <legend style="margin-bottom: 0;">{% trans "Signup" %}</legend>
+            {% if form.non_field_errors %}
+              <div class="alert alert-error fieldWrapper fade in">
+                  <a class="close" data-dismiss="alert" href="#">×</a>{{ form.non_field_errors }}
+              </div>
+            {% endif %}
+            
+            {% for field in form %}
+                {% if field.errors %}
+                <div class="alert alert-error fieldWrapper fade in">
+                    <a class="close" data-dismiss="alert" href="#">×</a>{{ field.errors }}
+                </div>
+                {% endif %}
+            {% comment %} Displaying checkboxes differently {% endcomment %}
+            {% if field.name == 'tos' %}
+            <p class="checkbox">
+            <label for="id_{{ field.name }}">{{ field }} {{ field.label }}</label>
+            </p>
+            {% else %}
+            <div class="control-group fieldWrapper span12" id="group_{{ field.name }}" style="margin-top: 10px;">
+              {{ field.label_tag }} 
+              {{ field }}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </fieldset>
+          <div id="scrollbar1" class="well well-small">
+            <div class="scrollbar"><div class="track"><div class="thumb"><div class="end"></div></div></div></div>
+            <div class="viewport">
+                <div class="overview">
+                  {% include "terms_of_service.html" %}
+                </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-info span12" style="margin:0px; border-radius: 0;">{% trans "Create My Account"%}</button>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock content %}
+
+{% block js %}
+  <script type="text/javascript" src="{% static "js/password_strength_plugin.js" %}"></script>
+  <script type="text/javascript">
+    $(document).ready(function(){
+      $('input').addClass('span10');
+      $('#id_password1').passStrength({
+        baseStyle: "help-inline",
+        userid: "#id_username",
+        messageloc: 1,
+        controlGroup: "#group_password1",
+      });
+      $('#scrollbar1').tinyscrollbar(); 
+      $('#scrollbar1').one("click", function(){
+        $('#scrollbar1 .scrollbar').css("visibility","hidden");
+        $('#scrollbar1 .viewport' ).animate({
+          height: '400px'
+        }, 500, function(){
+          $('#scrollbar1 .scrollbar').css("visibility","visible");
+          $('#scrollbar1').tinyscrollbar_update();
+        });
+        
+      });
+    });    
+  </script>
+{% endblock js %}

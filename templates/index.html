@@ -1,0 +1,51 @@
+{% extends "nav.html" %}
+{% load static from staticfiles %}
+{% load url from future %}
+
+{% load thumbnail %}
+{% load compress %}
+
+{% block css %}
+    {{ block.super }}
+    .select2-highlighted .movie-synopsis {
+    color: #EEEEEE;
+    font-size: 0.8em;
+    }
+    .bigdrop.select2-container .select2-results {
+    max-height: 300px;
+    }
+    .bigdrop .select2-results {
+    max-height: 300px;
+    }
+{% endblock %}
+
+{% block csslink %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/select2.css' %}" type="text/css" />
+{% endblock %}
+
+{% block title %}
+    Welcome
+{% endblock %}
+{% block content %}
+    <div class="row-fluid">
+        <div class="span3">
+            <div class="well sidebar-nav">
+                <ul class="nav nav-list">
+                    <li class="nav-header">Danh sách nhóm</li>
+                    {% include "_dsnhom.html" %}
+                </ul>
+            </div><!--/.well -->
+        </div><!--/span-->
+        <div class="span9">
+           <div class="span12 well">
+                {% include "_timkiemnhom.html" %}
+           </div>
+        </div><!--/span-->
+    </div><!--/row-->
+{% endblock %}
+{% block js-head %}
+    <script type="text/javascript" src="{% static "js/select2.min.js" %}"></script>
+{% endblock %}
+{% block js %}
+{% endblock %}

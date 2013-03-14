@@ -1,0 +1,431 @@
+{% extends 'userena/base_userena.html' %}
+{% load i18n %}
+{% load static from staticfiles %}
+{% load url from future %}
+{% load thumbnail %}
+{% load compress %}
+
+{% block csslink %}
+
+{{ block.super }}
+{% compress css %}
+<link rel="stylesheet" href="{% static "css/user/prof_detail.css" %}" type="text/css" />
+{% endcompress %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans with profile.user.username as username %}
+{{ username }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+<div id="mod-container" class="well">
+	<div class="row-fluid container">
+		<div id="mod-prof-main" class="span2" style="width:150px; overflow: visible;">
+			<div class="mod-prof-username-h2">
+				<h2>Kitchen of </h2><span>{{ profile.user.username }}</span>
+				<img src="{% static "img/tag.png" %}" />
+			</div>
+			<div class="mod-prof-main-img">
+				<img class="mugshot well well-small" style="height: 100px;width: 100px;" src="{{ profile.get_mugshot_url }}" alt="{% trans "Mugshot" %}" />
+				{% ifequal user.get_profile profile%}
+				<form id="mugshot_form" method="POST" enctype="multipart/form-data" action="{% url 'userena_profile_edit' profile.user.username %}">
+					{% csrf_token %}
+					<input type="file" name="mugshot" id="id_mugshot" style="width: 92px; overflow: hidden;" />
+				</form>
+				{% endifequal %}
+			</div>
+			<div class="mod-prof-main-txt">
+				<div class="mod-prof-main-about">
+					<dl>
+						{% if profile.about_me %}
+						<dt>{% trans "About me" %}</dt>
+						<dd>{{ profile.about_me }}</dd>
+						{% endif %}
+						{% if profile.website %}
+						<dt>{% trans "Website" %}</dt>
+						<dd><a href="{{profile.website}}">{{ profile.website }}</a></dd>
+						{% endif %}
+					</dl>
+				</div>
+			</div>
+			<div class="follow-div">
+                {%  comment %}
+				{% include 'actstream/follow_btn.html'%}
+				{% endcomment %}
+			</div>
+		</div>
+
+<div id="mod-prof-details" class="tabbable span9">
+	<ul id="mod-prof-nav" class="nav nav-tabs">
+		<li>
+			<a href="#cmts" data-toggle="tab">Message</a>
+		</li>
+		<li>
+			<a href="#friends" data-toggle="tab">Friends</a>
+		</li>
+		<li>
+			<a href="#prof" data-toggle="tab">Profile</a>
+		</li>
+		<li>
+			<a href="#did-recipe" data-toggle="tab">Did</a>
+		</li>
+		<li>
+			<a href="#favs" data-toggle="tab">Favorites</a>
+		</li>
+		<li class="active">
+			<a href="#recipes" data-toggle="tab">Recipes</a>
+		</li>
+	</ul>
+
+	<div class="tab-content">
+		<div class="tab-pane active row-fluid" id="recipes">
+			<ul class="">
+				{% for r in recipe_list %}
+				<li class="well well-small">
+					<a href="{{ r.get_absolute_url }}" class="">
+						{# here is a potential bug, that the image uploaded in admin won't contain /media/ in url #}
+						<img class="cover-img" style="height: 140px;width: 190px;" src="{{ r.cover_image|thumbnail_url:'recipe-prf' }}" alt="{% trans "cover image" %}" />
+						<div class="caption">
+							<div class="recipe-name">{{ r.name }}</div>
+							<div class="recipe-stat">
+								<span>{{ r.did_num }} did it.</span>
+								<span class="seperator">&nbsp;|&nbsp;</span>
+								<span>{{ r.like_num }} liked it.</span>
+								<span class="seperator">&nbsp;|&nbsp;</span>
+								<span>{{ r.view_num }} viewed it.</span>
+							</div>
+							<div class="recipe-date">
+								{{ r.date }}
+							</div>
+						</div>
+					</a>
+				</li>
+				{% endfor %}
+			</ul>
+		</div>
+			<div class="tab-pane" id="favs">
+				<ul class="">
+				{% for f in favourite_list %}
+				<li class="well well-small">
+					<a href="{{ f.get_absolute_url }}" class="">
+						{# here is a potential bug, that the image uploaded in admin won't contain /media/ in url #}
+						<img class="cover-img" style="height: 140px;width: 190px;" src="{{ f.cover_image|thumbnail_url:'recipe-prf' }}" alt="{% trans "cover image" %}" />
+						<div class="caption">
+							<div class="recipe-name">{{ f.name }}</div>
+							<div class="recipe-stat">
+								<span>{{ f.did_num }} did it.</span>
+								<span class="seperator">&nbsp;|&nbsp;</span>
+								<span>{{ f.like_num }} liked it.</span>
+								<span class="seperator">&nbsp;|&nbsp;</span>
+								<span>{{ f.view_num }} viewed it.</span>
+							</div>
+							<div class="recipe-date">
+								{{ f.date }}
+							</div>
+						</div>
+					</a>
+				</li>
+				{% endfor %}
+			</ul>
+			</div>
+			<div class="tab-pane" id="did-recipe">
+				<ul class="">
+				{% for f in did_recipe_list %}
+				<li class="well well-small" style="height:185px;">
+					<a href="{{ f.get_absolute_url }}" class="">
+						{# here is a potential bug, that the image uploaded in admin won't contain /media/ in url #}
+						<img class="cover-img" style="height: 140px;width: 190px;" src="{{ f.image|thumbnail_url:'recipe-prf' }}" alt="{% trans "cover image" %}" />
+						<div class="caption">
+							<div class="recipe-name">{{ f.recipe.name }}</div>
+							<div class="recipe-date">
+								{{ f.date }}
+							</div>
+						</div>
+					</a>
+				</li>
+				{% endfor %}
+			</ul>
+			</div>
+			<div class="tab-pane well well-small" id="prof">
+				{% block profile_details %}
+				<dl>
+					{% block profile_definition_list %}
+					<div class="row-fluid">
+						{% if profile.user.first_name or profile.user.id == user.id %}
+						<div class="prof-div span6">
+							<dt>{% trans "First Name" %}</dt>
+							<div class="prof-form input-append">
+								<form class="prof_edit" action="{% url 'userena_profile_edit' profile.user.username %}" method="POST">
+									<input readonly class="profile_input special_input" type="text" name="first_name" value="{{ profile.user.first_name }}" />
+									<button class="prof_smt_btn btn" rel="popover" type="submit">Submit</button>
+								</form>
+							</div>
+						</div>
+						{% endif %}
+						{% if profile.user.last_name or profile.user.id == user.id  %}
+						<div class="prof-div span4">
+							<dt>{% trans "Last Name" %}</dt>
+							<div class="prof-form input-append">
+								<form class="prof_edit" action="{% url 'userena_profile_edit' profile.user.username %}" method="POST">
+									<input readonly class="profile_input special_input"  type="text" name="last_name" value="{{ profile.user.last_name }}" />
+									<button class="prof_smt_btn btn" rel="popover" type="submit">Submit</button>
+								</form>
+							</div>
+						</div>
+						{% endif %}
+					</div>
+					<div class="row-fluid">
+						{% if profile.user.email and not hide_email or profile.user.id == user.id  %}
+						<div class="prof-div span6">
+							<dt>{% trans "Email" %}</dt>
+
+							<div class="prof-form">
+								<form action="" method="POST">
+									<input readonly="readonly" class="profile_input" type="text" name="email" value="{{ profile.user.email }}" />
+								</form>
+							</div>
+						</div>
+						{% endif %}
+						{% if profile.age or profile.user.id == user.id  %}
+						<div class="prof-div span4">
+							<dt>{% trans "Age" %}</dt>
+							<div class="prof-form input-append">
+								<form class="prof_edit" action="{% url 'userena_profile_edit' profile.user.username %}" method="POST">
+									<input readonly class="profile_input special_input" type="text" name="age" value="{{ profile.age }}" />
+									<button class="prof_smt_btn btn" rel="popover" type="submit">Submit</button>
+								</form>
+							</div>
+						</div>
+						{% endif %}
+					</div>
+					<div class="row-fluid">
+						{% if profile.website or profile.user.id == user.id  %}
+						<div class="prof-div span6">
+							<dt>{% trans "Website" %}</dt>
+							<div class="prof-form input-append">
+								<form class="prof_edit" action="{% url 'userena_profile_edit' profile.user.username %}" method="POST">
+									<input readonly class="profile_input special_input"  type="text" name="website" value="{{ profile.website }}" />
+									<button class="prof_smt_btn btn" rel="popover" type="submit">Submit</button>
+								</form>
+							</div>
+						</div>
+						{% endif %}
+						{% if profile.location or profile.user.id == user.id  %}
+						<div class="prof-div span4">
+							<dt>{% trans "Location" %}</dt>
+							<div class="prof-form input-append">
+								<form class="prof_edit" action="{% url 'userena_profile_edit' profile.user.username %}" method="POST">
+									<input readonly class="profile_input special_input"  type="text" name="location" value="{{ profile.location }}" />
+									<button class="prof_smt_btn btn" rel="popover" type="submit">Submit</button>
+								</form>
+							</div>
+						</div>
+						{% endif %}
+					</div>
+					{% if profile.about_me or profile.user.id == user.id  %}
+					<div class="prof-div">
+					<dt>{% trans "About me" %}</dt>
+					<div class="prof-form input-append">
+						<form class="prof_edit" action="{% url 'userena_profile_edit' profile.user.username %}" method="POST">
+							<input readonly class="profile_input special_input"  type="text" name="about_me" value="{{ profile.about_me }}" />
+							<button class="prof_smt_btn btn" rel="popover" type="submit">Submit</button>
+						</form>
+					</div>
+				</div>
+					{% endif %}
+					{% endblock %}
+				</dl>
+				{% endblock %}
+				<div class="change-pass">
+					<a href="{% url 'userena_password_change' user.username %}">{% trans "Change password" %}</a>
+				</div>
+			</div>
+			<div class="tab-pane" id="friends">
+				<div class="tabbable tabs-right">
+					<ul class="nav nav-tabs">
+						<li class="active"><a href="#u-followers" data-toggle="tab">Followers</a></li>
+						<li><a href="#u-followings" data-toggle="tab">Followees</a></li>
+					</ul>
+					<div class="well well-small tab-content">
+						<div class="tab-pane active" id="u-followers">
+							{% for f in followers %}
+								<div class="grid-item row-fluid">
+									<a href="{{f.get_absolute_url}}" class="span4"><img src="{{f.get_profile.mugshot|thumbnail_url:'avatar'}}" style="width:50px;height:50px;" /></a>
+									<a href="{{f.get_absolute_url}}" class="span8">{{f.username}}</a>
+								</div>
+							{% endfor %}
+						</div>
+						<div class="tab-pane" id="u-followings">
+							{% for f in followings %}
+								<div class="grid-item row-fluid">
+									<a href="{{f.get_absolute_url}}" class="span4"><img src="{{f.get_profile.mugshot|thumbnail_url:'avatar'}}" style="width:50px;height:50px;" /></a>
+									<a href="{{f.get_absolute_url}}" class="span8">{{f.username}}</a>
+								</div>
+							{% endfor %}
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="tab-pane" id="cmts">
+				<div class="well well-small tabbable tabs-right">
+                {% comment %}
+					<form id="message_form" action="{% url 'leave_message' profile.user.username %}" method="POST">
+						<input id="id_to" type="hidden" value="{{profile.user.username}}" />	
+						<textarea name="comment" id="id_comment" maxlength="140"></textarea>
+						<p>
+				      <label for="id_public">Public:</label>
+				      <input type="checkbox" name="public" id="id_public" checked />
+				    </p>
+						<button id="message_btn" rel="popover" type="submit" class="btn pull-right">Leave a Message</button>
+					</form>
+				{% endcomment %}
+					<div id="conversation">
+						<ul>
+							{% for message in public_messages %}
+							<li>
+								<div class="row"><img src="{{ message.sender.get_profile.mugshot|thumbnail_url:'avatar'}}"/><a href="{{message.sender.get_absolute_url}}">{{ message.sender }}</a></div>
+								<div class="row">{{ message.body}}</div>
+								<p>{% blocktrans with message.sent_at as sent_at %}Received on {{ sent_at }}{% endblocktrans %}</p>
+							</li>
+							{% endfor %}
+						</ul>
+					</div>
+					<a id="load_conversation" href="?page=1">See a full list of messages ...</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+{% comment %}
+<div id="recommends">
+<h2>Recommended Recipes</h2>
+<ul>
+{% for r in recommends %}
+<li><a href="{{ r.get_absolute_url }}">{{r.name}}</a></li>
+{% endfor %}
+</ul>
+</div>
+{% endcomment %}
+</div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+$(document).ready(function() {
+	if (document.getElementById('id_mugshot')){
+		document.getElementById('id_mugshot').onchange = function() {
+			document.getElementById('mugshot_form').submit();
+		}
+	}
+	
+	$('#message_btn').popover({
+		trigger: 'manual',
+		title: 'Success',
+		content: 'Your message is sent',
+		placement: 'bottom',
+	});
+	$('#message_form').submit(function(event) {
+		event.preventDefault();
+		var url = $(this).attr('action');
+		var postdata = {
+			'to': $('#id_to').val(),
+			'body': $('#id_comment').val(),
+			'public': $('#id_public').attr('checked'),
+			'csrfmiddlewaretoken': '{{ csrf_token }}',
+		}
+		$.post(url, postdata, function(data){
+			$('#message_btn').popover('show');
+			setTimeout(function() {
+				$('#message_btn').popover('hide');
+			}, 1200);
+			$(data).hide().prependTo('#conversation').show('slow');
+			$('#id_comment').val('');
+		});
+		return false;
+	});
+
+	$('#load_conversation').click(function(){
+		var url = $(this).attr('href');
+		var postdata = {
+			'csrfmiddlewaretoken': '{{ csrf_token }}',
+		}
+		$.get(url, postdata, function(data){
+			$('#conversation').hide().empty().append(data).show('slow');
+			$('#load_conversation').hide();
+		});
+		return false;
+	});
+
+	$('.prof_edit').submit(function(event) {
+		var btn = $(this).find('.prof_smt_btn');
+		event.preventDefault();
+		var url = $(this).attr('action');
+		var postdata = {
+			'field': $(this).children('input').attr('name'),
+			'value': $(this).children('input').val(),
+			'csrfmiddlewaretoken': '{{ csrf_token }}',
+		}
+
+		$.post(url, postdata, function(data){
+			btn.popover('show');
+			setTimeout(function() {
+				btn.popover('hide');
+			}, 800);
+		});
+	});
+	$('.prof_smt_btn').popover({
+		trigger: 'manual',
+		title: 'Success',
+		content: 'Your modification has been processed.',
+		placement: 'bottom',
+	});
+
+	{% ifequal user profile.user %}
+	$('.special_input').focusout(function (){
+		var input = $(this);
+		setTimeout(function(){
+			input.addClass('profile_input');
+			input.siblings('button').hide();
+		},800);
+	});
+
+	$('.prof-div').click(function() {
+		$(this).find('.special_input').removeClass('profile_input').attr('readonly',false).focus();
+		$(this).find('button').show();
+	});
+
+	$('.prof-div').tooltip({
+		placement: 'left',
+		title: "Click to Edit",
+	});
+	{% endifequal%}
+
+  // receive request for the profile tab pane
+  var hashPath = window.location.hash;
+  console.log(hashPath);
+  if (hashPath.length > 0) {
+  	var objPath = 'ul#mod-prof-nav > li > a[href=' + hashPath + ']';
+	  console.log(objPath);
+    $(objPath).tab('show');
+  }
+
+  // config position
+  $('div.mod-prof-username-h2').css('width', $('div.mod-prof-username-h2 h2').width() + $('div.mod-prof-username-h2 span').width()+20);
+  // console.log($('div.mod-prof-username-h2').position().top);
+  $('div.mod-prof-main-img form').css('top', $('div.mod-prof-main-img img').position().top+50);
+  $('div.mod-prof-main-img form').css('left', $('div.mod-prof-main-img img').position().left+14);
+
+  // show change mugshot button
+  $('div.mod-prof-main-img').hover(function () {
+  	$('div.mod-prof-main-img form').stop().show();
+  	console.log('over');
+  }, function() {
+  	$('div.mod-prof-main-img form').stop().hide();
+  	console.log('out');
+  });
+});
+</script>
+{% endblock js%}
