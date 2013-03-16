@@ -1,0 +1,36 @@
+{% if nhoms %}
+{% for nhom in nhoms %}
+<tr class="{% if nhom.is_full_member %}error{% else %}info{% endif %}">
+    <td>
+        {% if nhom.is_full_member %}
+            <span class="label label-warning">FULL</span>
+        {% endif %}
+        <div>
+            <b>{{ nhom.ten_nhom }}</b><br>
+            <em>{{ nhom.gioi_thieu_nhom }}</em>
+        </div>
+    </td>
+{% if not nhom.is_full_member %}
+    <td>
+        <div class="btn-toolbar pull-right">
+            <div class="btn-group">
+                <a href="{% url jointogroup nhom.pk %}" class="btn btn-large ajax" data-method="get" data-replace-inner="#message" data-refresh="#dsnhom"><i class="icon-plus"></i>Tham gia</a>
+            </div>
+        </div>
+    </td>
+{% else %}
+    <td></td>
+{% endif %}
+
+</tr>
+{% endfor %}
+{% else %}
+<tr class="error">
+        <td>
+            <b>Hiện tại môn học này chưa có nhóm, bạn có thể bắt đầu tạo nhóm</b>
+        </td>
+</tr>
+{% endif %}
+<script>
+    $("#newgroupBtn").attr("href",$("#monhocid").val());
+</script>

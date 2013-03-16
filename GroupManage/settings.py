@@ -182,8 +182,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'group.nampnq@gmail.com'
 EMAIL_HOST_PASSWORD = 'yourgmailpassword'
 
-ANONYMOUS_USER_ID = -1
-
+ANONYMOUS_USER_ID = 0
 AUTH_PROFILE_MODULE = 'accounts.MyProfile'
 
 LOGIN_REDIRECT_URL = '/accounts/%(username)s/'

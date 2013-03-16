@@ -31,10 +31,7 @@
     <div class="row-fluid">
         <div class="span3">
             <div class="well sidebar-nav">
-                <ul class="nav nav-list">
-                    <li class="nav-header">Danh sách nhóm</li>
-                    {% include "_dsnhom.html" %}
-                </ul>
+                {% include "_dsnhom.html" %}
             </div><!--/.well -->
         </div><!--/span-->
         <div class="span9">
@@ -46,6 +43,7 @@
 {% endblock %}
 {% block js-head %}
     <script type="text/javascript" src="{% static "js/select2.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/bootstrap-ajax.js"  %}"></script>
 {% endblock %}
 {% block js %}
 {% endblock %}

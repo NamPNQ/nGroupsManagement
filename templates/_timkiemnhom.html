@@ -1,36 +1,44 @@
 {% load compress %}
-<h6>Hệ thống quản lí nhóm</h6>
+<h5>Hệ thống quản lí nhóm</h5>
 <hr>
-<p>Hiện tại bạn chưa gia nhập nhóm nào hết</p>
+<h6>Tìm kiếm, tạo nhóm</h6>
 <p>Danh sách các môn học</p>
-<form class="form-inline" method="GET" action="/">
-    <input type="hidden" class="bigdrop" id="monhocid" style="width:600px" value="16340"/>
-    <input class="btn" type="submit" value="Tìm kiếm nhóm" />
-    </div>
-    </fieldset>
+<form class="form-inline ajax" method="post" action="{% url dsnhom %}" data-replace-inner="#result">
+    {% csrf_token %}
+    <input type="hidden" class="bigdrop" id="monhocid" name="id" style="width:600px">
+    <input type="submit" class="btn" value="Tìm kiếm nhóm">
 </form>
-<script type="text/javascript">
-            $(document).ready(function() {
-                $("#monhocid").select2({
-                    placeholder: "Search for a movie",
-                    minimumInputLength: 1,
-                    ajax: { // instead of writing the function to execute the request we use Select2's convenient helper
-                        url: "/dsmon_lookup",
-                        dataType: 'jsonp',
-                        data: function (term, page) {
-                            return {
-                                q: term, // search term
-                            };
-                        },
-                        results: function (data, page) { // parse the results into the format expected by Select2.
-                            // since we are using custom formatting functions we do not need to alter remote JSON data
-                            return {results: data.data};
-                        }
+<div id="loading"></div>
+<div id="message"></div>
+<table class="table table-hover">
+    <tbody id="result">
+
+    </tbody>
+</table>
+<a class="btn" id="newgroupBtn" href="#"><i class="icon-pencil"></i>Tạo nhóm mới</a>
+{% compress 'js' %}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#monhocid").select2({
+                placeholder: "Nhập vào tên môn học cần tìm nhóm",
+                minimumInputLength: 1,
+                ajax: { // instead of writing the function to execute the request we use Select2's convenient helper
+                    url: "{% url dsmon_lookup %}",
+                    dataType: 'jsonp',
+                    data: function (term) {
+                        return {
+                            q: term // search term
+                        };
                     },
-                    formatResult: function (m) { return "<b>" + m.ten_mon + "</b><br><em>"+m.gioi_thieu +"</em><br><b>Năm học:</b>"+ m.nam_hoc; } , // omitted for brevity, see the source of this page
-                    formatSelection: function (m) { return m.ten_mon; } , // omitted for brevity, see the source of this page
-                    dropdownCssClass: "bigdrop", // apply css that makes the dropdown taller
-                    escapeMarkup: function (m) { return m; } // we do not want to escape markup since we are displaying html in results
-                });
+                    results: function (data) {
+                        return {results: data.data};
+                    }
+                },
+                formatResult: function (m) { return "<b>" + m.ten_mon + "</b><br><em>"+m.gioi_thieu +"</em><br><b>Năm học:</b>"+ m.nam_hoc; } , // omitted for brevity, see the source of this page
+                formatSelection: function (m) { return m.ten_mon; } , // omitted for brevity, see the source of this page
+                dropdownCssClass: "bigdrop", // apply css that makes the dropdown taller
+                escapeMarkup: function (m) { return m; } // we do not want to escape markup since we are displaying html in results
             });
+        });
 </script>
+{% endcompress %}
