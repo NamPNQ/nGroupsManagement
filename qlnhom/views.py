@@ -91,7 +91,8 @@ def jointogroup(request, **kwargs):
                u"<script>$('a[href$=\"%s\"]')"\
                u".html('<i class=\"icon-remove\"></i> Rời khỏi nhóm')" \
                u".attr('data-method','POST')" \
-               u".removeClass('btn-info ajax').addClass('btn-danger corfirm')" \
+               u".attr('data-target','#deleteModal')" \
+               u".removeClass('btn-info ajax').addClass('btn-danger ajax-modal')" \
                u".attr('href','%s')</script>" % (request.get_full_path(), nhom.get_absolute_url() + "/out")
 
     join = ThanhVienNhom(user=request.user, nhom=nhom)
@@ -135,7 +136,8 @@ def outgroup(request, **kwargs):
                    u"<script>$('a[href$=\"%s\"]')" \
                    u".html('<i class=\"icon-plus\"></i> Tham gia')" \
                    u".attr('data-method','GET')" \
-                   u".removeClass('btn-danger corfirm').addClass('btn-info ajax')" \
+                   u".removeAttr('data-target')" \
+                   u".removeClass('btn-danger ajax-modal').addClass('btn-info ajax')" \
                    u".attr('href','%s')</script>" % (request.get_full_path(), nhom.get_absolute_url() + "/join")
 
     else:
