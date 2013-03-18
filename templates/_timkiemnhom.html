@@ -29,7 +29,20 @@
         <button id="cancel" class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">Không</button>
     </div>
 </div>
-<a class="btn btn-success" id="newgroupBtn" href="{% url taonhom %}"><i class="icon-pencil"></i>Tạo nhóm mới</a>
+<div id="createGroup" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3>Tạo nhóm mới</h3>
+    </div>
+    <div class="modal-body">
+        <p>Loading data...</p>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-danger submit">Tạo nhóm</button>
+        <button class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">Hủy</button>
+    </div>
+</div>
+<a class="btn btn-success ajax-modal" data-modal="{% url taonhom %}" data-method="POST" data-target="#createGroup" data-refresh="#dsnhom" data-replace-inner="#message" id="newgroupBtn" href="{% url taonhom %}"><i class="icon-pencil"></i>Tạo nhóm mới</a>
 {% compress 'js' %}
     <script type="text/javascript">
         $(document).ready(function() {
@@ -54,7 +67,7 @@
                 escapeMarkup: function (m) { return m; } // we do not want to escape markup since we are displaying html in results
             });
         });
-        $('.modal-footer > button.submit').click(function(e){
+        $(document).on('click','.modal-footer > button.submit',function(e){
             var $a = $(this).parent().parent();
             $a.modal('hide');
             $.ajax({
@@ -80,9 +93,15 @@
             var attributes = $a.prop("attributes");
             $b.modal("show");
             $.each(attributes, function() {
-                if(this.name !== "class" && this.name !== "data-target")
+                if(this.name !== "class" && this.name !== "data-target" && this.name !== "data-modal" && this.name !== "id" && this.name !== "name")
                     $b.attr(this.name, this.value);
             });
+            if($a.attr('data-modal'))
+            {
+                $.getJSON($a.attr('data-modal'),function(data){
+                    $($b).find('.modal-body').html(data.html)
+                })
+            }
             return false;
         });
 </script>

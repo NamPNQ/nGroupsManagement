@@ -137,6 +137,7 @@ INSTALLED_APPS = (
     'easy_thumbnails',
     'accounts',
     'compressor',
+    'bootstrapform',
 )
 
 # A sample logging configuration. The only tangible logging

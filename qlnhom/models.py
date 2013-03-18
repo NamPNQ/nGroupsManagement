@@ -40,7 +40,7 @@ class MonHoc(models.Model):
 class Nhom(models.Model):
     ten_nhom = models.CharField('Tên nhóm', max_length=50)
     mon_hoc = models.ForeignKey('MonHoc', verbose_name='Tên Môn Học')
-    max_sl = models.SmallIntegerField("Số lương")
+    max_sl = models.SmallIntegerField("Số lượng")
     gioi_thieu_nhom = models.CharField('Giới thiệu về nhóm', max_length=500)
     loai_nhom = models.SmallIntegerField('Loại nhóm', choices=Loai_Nhom_Choice, default=0)
     dsthanhvien = models.ManyToManyField(User, through='ThanhVienNhom', verbose_name='Danh sách thành viên')

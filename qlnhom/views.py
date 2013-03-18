@@ -3,11 +3,29 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import redirect_to_login
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.utils import simplejson as json
 from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
+
+
+def ajax_required(f):
+    """
+    AJAX request required decorator
+    use it in your views:
+
+    @ajax_required
+    def my_view(request):
+        ....
+
+    """
+    def wrap(request, *args, **kwargs):
+        if not request.is_ajax():
+            return HttpResponseBadRequest()
+        return f(request, *args, **kwargs)
+    wrap.__doc__ = f.__doc__
+    wrap.__name__ = f.__name__
+    return wrap
 
 
 @login_required
@@ -44,6 +62,7 @@ def listgroup(request):
 
 
 @login_required
+@ajax_required
 def dsnhomjoined(request, **kwargs):
     data = {
         "html": render_to_string(
@@ -55,6 +74,7 @@ def dsnhomjoined(request, **kwargs):
 
 
 @login_required
+@ajax_required
 def json_lookup(request, queryset, field, limit=10, **kwargs):
     """
     Method to lookup a model field and return a array. Intended for use
@@ -83,6 +103,7 @@ def json_lookup(request, queryset, field, limit=10, **kwargs):
 
 
 @login_required
+@ajax_required
 def jointogroup(request, **kwargs):
     from qlnhom.models import Nhom, ThanhVienNhom
     nhom = Nhom.objects.get(pk=kwargs['nhomid'])
@@ -111,19 +132,81 @@ def jointogroup(request, **kwargs):
     return HttpResponse(json.dumps(data), mimetype="application/json")
 
 
+@login_required
 def nhom(request, **kwargs):
     pass
 
 
+@login_required
 def monhoc(request, **kwargs):
     pass
 
 
+@login_required
+@ajax_required
 def taonhom(request, **kwargs):
-    pass
+    from django.forms.models import modelform_factory
+    from qlnhom.models import Nhom
+    TaoNhomForm = modelform_factory(Nhom, exclude=("dsthanhvien",))
+    if request.method == 'GET':
+        form = TaoNhomForm()
+        if 'monhocid' in kwargs:
+            nhom = Nhom.objects.get(pk=kwargs['monhocid'])
+            if not request.user.nhom_set.all().filter(mon_hoc_id=nhom.mon_hoc):
+                form.fields["mon_hoc"].initial = kwargs['monhocid']
+                response = render_to_string("_taonhom.html", RequestContext(request, {'form': form,
+                                                                                      'method_get':
+                                                                                      request.method == 'GET'}))
+            else:
+                response = render_to_string("_taonhom.html", {'message': u"<div class='alert alert-error'>"
+                                                                         u"<button type='button' class='close'"
+                                                                         u" data-dismiss='alert'>&times;</button>"
+                                                                         u"<strong>Lỗi: </strong> Môn học này bạn"
+                                                                         u" đã có nhóm rồi. Không thể tạo thêm </div>"})
+        else:
+            response = render_to_string("_taonhom.html", RequestContext(request, {'form': form,
+                                                                                  'method_get':
+                                                                                  request.method == 'GET'}))
+
+    if request.method == 'POST':
+        Form = TaoNhomForm(request.POST)
+        if Form.is_valid():
+            if not request.user.nhom_set.all().filter(mon_hoc_id=Form.cleaned_data['mon_hoc']):
+                g = Form.save()
+                from qlnhom.models import ThanhVienNhom
+                m = ThanhVienNhom(user=request.user, nhom_id=g.pk, nhom_truong=True)
+                msg = u"<div class='alert alert-success'>" \
+                      u"<button type='button' class='close'"\
+                      u" data-dismiss='alert'>&times;</button>" \
+                      u"<strong>Thông báo: </strong>Tạo nhóm"\
+                      u" thành công</div>"
+                try:
+                    m.full_clean()
+                    m.save()
+                except ValidationError as e:
+                    msg = ""
+                    for message in e.messages:
+                        msg += u"<div class='alert alert-error'>" \
+                               u"<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
+                               u"<strong>Lỗi: </strong> %s </div>" % message
+            else:
+                msg = u"<div class='alert alert-error'>" \
+                      u"<button type='button' class='close'"\
+                      u" data-dismiss='alert'>&times;</button>" \
+                      u"<strong>Lỗi: </strong> Môn học này bạn"\
+                      u" đã có nhóm rồi. Không thể tạo thêm </div>"
+            response = render_to_string("_taonhom.html", {'message': msg})
+        else:
+            response = render_to_string("_taonhom.html", RequestContext(request, {'form': Form}))
+    data = {
+        'html': response
+    }
+    return HttpResponse(json.dumps(data), mimetype='application/json')
 
 
+@login_required
 @require_POST
+@ajax_required
 def outgroup(request, **kwargs):
     from qlnhom.models import Nhom, ThanhVienNhom
     nhom = Nhom.objects.get(pk=kwargs['nhomid'])

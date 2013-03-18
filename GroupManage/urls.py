@@ -11,7 +11,7 @@ admin.autodiscover()
 
 dsmon_lookup = {
     'queryset': MonHoc.objects.all(),
-    'field': 'ten_mon', # this is the field which is searched
+    'field': 'ten_mon',  # this is the field which is searched
     'field_extract': ['gioi_thieu', 'nam_hoc'],
     #'limit': 10, # default is to limit query to 10 results. Increase this if you like.
     #'login_required': onhocFalse, # default is to allow anonymous queries. Set to True if you want authenticated access.

@@ -33,6 +33,7 @@
 {% if forloop.last %}
     <script>
         $("#newgroupBtn").attr("href","{{ nhom.mon_hoc.get_absolute_url }}/taonhom");
+        $("#newgroupBtn").attr("data-modal","{{ nhom.mon_hoc.get_absolute_url }}/taonhom");
         $("#message").html("<div class='alert'><button type='button' class='close' data-dismiss='alert'>&times;</button>" +
                 "<strong>Chú thích: </strong>  " +
                 "<span class=\"label label-important\">Nhóm trưởng</span>  " +
