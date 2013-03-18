@@ -15,7 +15,21 @@
 
     </tbody>
 </table>
-<a class="btn" id="newgroupBtn" href="#"><i class="icon-pencil"></i>Tạo nhóm mới</a>
+<!-- Modal -->
+<div id="deleteModal" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel">Xác nhận rời khỏi nhóm</h3>
+    </div>
+    <div class="modal-body">
+        <p>Bạn chắc chắn muốn rời khỏi nhóm này?</p>
+    </div>
+    <div class="modal-footer">
+        <button id="confirm" class="btn btn-danger">Uh,Chắc chắn</button>
+        <button id="cancel" class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">Không</button>
+    </div>
+</div>
+<a class="btn btn-success" id="newgroupBtn" href="{% url taonhom %}"><i class="icon-pencil"></i>Tạo nhóm mới</a>
 {% compress 'js' %}
     <script type="text/javascript">
         $(document).ready(function() {
@@ -39,6 +53,37 @@
                 dropdownCssClass: "bigdrop", // apply css that makes the dropdown taller
                 escapeMarkup: function (m) { return m; } // we do not want to escape markup since we are displaying html in results
             });
+        });
+        $('button#confirm').click(function(e){
+            var $a = $('#deleteModal');
+            $a.modal('hide');
+            $.ajax({
+                url: $a.attr('href'),
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                dataType:'json',
+                type : $a.attr('data-method'),
+                success:function(result){
+                    $($a.attr('data-replace-inner')).html(result.html);
+                    $.each($($a.attr('data-refresh')), function(index, value) {
+                        $.getJSON($(value).data('refresh-url'), function(data) {
+                            $(value).replaceWith(data.html)
+                        })
+                    })
+                }});
+        });
+        $(document).on('click', 'a.ajax-modal', function (e) {
+            e.preventDefault();
+            var $a = $(this);
+            var $b = $('#deleteModal');
+            var attributes = $a.prop("attributes");
+            $b.modal("show");
+            $.each(attributes, function() {
+                if(this.name !== "class")
+                    $b.attr(this.name, this.value);
+            });
+            return false;
         });
 </script>
 {% endcompress %}

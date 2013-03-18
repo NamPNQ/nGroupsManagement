@@ -11,7 +11,7 @@ admin.autodiscover()
 
 dsmon_lookup = {
     'queryset': MonHoc.objects.all(),
-    'field': 'ten_mon',  # this is the field which is searched
+    'field': 'ten_mon', # this is the field which is searched
     'field_extract': ['gioi_thieu', 'nam_hoc'],
     #'limit': 10, # default is to limit query to 10 results. Increase this if you like.
     #'login_required': onhocFalse, # default is to allow anonymous queries. Set to True if you want authenticated access.
@@ -30,10 +30,21 @@ urlpatterns = patterns('',
                        url(r'^admin/', include(admin.site.urls)),
                        (r'^accounts/', include('userena.urls')),
                        (r'^grappelli/', include('grappelli.urls')),
-                       url(r'^$', 'qlnhom.views.index', name='home_page'),
-                       url(r'^dsmon_lookup$', 'qlnhom.views.json_lookup', dsmon_lookup, name="dsmon_lookup"),
-                       url(r'^dsnhom_lookup$', 'qlnhom.views.listgroup', name='dsnhom'),
-                       url(r'^dsnhom/$', 'qlnhom.views.dsnhomjoined', name="dsnhomjoined"),
-                       url(r'^dsnhom/join/(?P<nhomid>\d+)/$', 'qlnhom.views.jointogroup', name="jointogroup"),
+
 
 ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += patterns('qlnhom.views',
+                        url(r'^$', 'index', name='home_page'),
+                        url(r'^monhoc/dsmon_lookup$', 'json_lookup', dsmon_lookup, name="dsmon_lookup"),
+                        url(r'^monhoc/dsnhom_lookup$', 'listgroup', name='dsnhom'),
+                        url(r'^monhoc/taonhom$', 'taonhom', name='taonhom'),
+                        url(r'^monhoc/(?P<monhoc>.+)-(?P<monhocid>\d+)$', 'monhoc', name='monhoc'),
+                        url(r'^monhoc/(?P<monhoc>.+)-(?P<monhocid>\d+)/taonhom$', 'taonhom', name='taonhommonhoc'),
+                        url(r'^(?P<username>.*)/dsnhom/$', 'dsnhomjoined', name="dsnhomjoined"),
+                        url(r'^(?P<monhoc>.+)-(?P<monhocid>\d+)/(?P<nhom>.+)-(?P<nhomid>\d+)$', 'nhom', name="nhom"),
+                        url(r'^(?P<monhoc>.+)-(?P<monhocid>\d+)/(?P<nhom>.+)-(?P<nhomid>\d+)/join$', 'jointogroup',
+                                                                                                name="jointogroup"),
+                        url(r'^(?P<monhoc>.+)-(?P<monhocid>\d+)/(?P<nhom>.+)-(?P<nhomid>\d+)/out$', 'outgroup',
+                            name="outgroup")
+)

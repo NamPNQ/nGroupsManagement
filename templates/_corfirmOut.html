@@ -1,0 +1,4 @@
+<p>Bạn {{ user.username }} thực sự muốn rời khỏi nhóm {{ nhom.ten_nhom }}</p>
+<form method="POST" action="{{ get_full_path }}">
+    {% csrf_token %}
+</form>

@@ -44,7 +44,7 @@ def listgroup(request):
 
 
 @login_required
-def dsnhomjoined(request):
+def dsnhomjoined(request, **kwargs):
     data = {
         "html": render_to_string(
             "_dsnhom.html",
@@ -54,13 +54,12 @@ def dsnhomjoined(request):
     return HttpResponse(json.dumps(data), mimetype="application/json")
 
 
-def json_lookup(request, queryset, field, limit=10, login_required=False, **kwargs):
+@login_required
+def json_lookup(request, queryset, field, limit=10, **kwargs):
     """
     Method to lookup a model field and return a array. Intended for use
     in AJAX widgets.
     """
-    if login_required and request.user.is_anonymous():
-        return redirect_to_login(request.path)
     if request.GET:
         if (not 'q' in request.GET) or (not 'callback' in request.GET):
             raise Http404
@@ -84,11 +83,16 @@ def json_lookup(request, queryset, field, limit=10, login_required=False, **kwar
 
 
 @login_required
-def jointogroup(request, nhomid):
+def jointogroup(request, **kwargs):
     from qlnhom.models import Nhom, ThanhVienNhom
-    nhom = Nhom.objects.get(pk=nhomid)
-    response = "<div class='alert'><button type='button' class='close' data-dismiss='alert'>&times;</button>" \
-               "<strong>Thông báo: </strong>Bạn đã tham gia nhóm thành công</div>"
+    nhom = Nhom.objects.get(pk=kwargs['nhomid'])
+    response = u"<div class='alert'><button type='button' class='close' data-dismiss='alert'>&times;</button>" \
+               u"<strong>Thông báo: </strong>Bạn đã tham gia nhóm thành công</div>"\
+               u"<script>$('a[href$=\"%s\"]')"\
+               u".html('<i class=\"icon-remove\"></i> Rời khỏi nhóm')" \
+               u".attr('data-method','POST')" \
+               u".removeClass('btn-info ajax').addClass('btn-danger corfirm')" \
+               u".attr('href','%s')</script>" % (request.get_full_path(), nhom.get_absolute_url() + "/out")
 
     join = ThanhVienNhom(user=request.user, nhom=nhom)
     try:
@@ -100,6 +104,44 @@ def jointogroup(request, nhomid):
             response += u"<div class='alert alert-error'>" \
                         u"<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
                         u"<strong>Lỗi: </strong> %s </div>" % message
+    data = {
+        "html": response
+    }
+    return HttpResponse(json.dumps(data), mimetype="application/json")
+
+
+def nhom(request, **kwargs):
+    pass
+
+
+def monhoc(request, **kwargs):
+    pass
+
+
+def taonhom(request, **kwargs):
+    pass
+
+
+@require_POST
+def outgroup(request, **kwargs):
+    from qlnhom.models import Nhom, ThanhVienNhom
+    nhom = Nhom.objects.get(pk=kwargs['nhomid'])
+    if request.user in nhom.dsthanhvien.all():
+        membership = ThanhVienNhom.objects.filter(user=request.user, nhom=nhom)
+        membership.delete()
+        response = u"<div class='alert alert-success'>" \
+                   u"<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
+                   u"<strong>Thông báo: </strong>Bạn đã rời khỏi nhóm thành công</div>"\
+                   u"<script>$('a[href$=\"%s\"]')" \
+                   u".html('<i class=\"icon-plus\"></i> Tham gia')" \
+                   u".attr('data-method','GET')" \
+                   u".removeClass('btn-danger corfirm').addClass('btn-info ajax')" \
+                   u".attr('href','%s')</script>" % (request.get_full_path(), nhom.get_absolute_url() + "/join")
+
+    else:
+        response = "<div class='alert alert-error'>" \
+                   "<button type='button' class='close' data-dismiss='alert'>&times;</button>"\
+                   "<strong>Thông báo: </strong>Bạn chưa tham gia nhóm này !</div>"
     data = {
         "html": response
     }

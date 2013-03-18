@@ -7,22 +7,39 @@
         {% endif %}
         <div>
             <b>{{ nhom.ten_nhom }}</b><br>
-            <em>{{ nhom.gioi_thieu_nhom }}</em>
+            <em>{{ nhom.gioi_thieu_nhom }}</em><br>
+            <b><span style="text-decoration: underline;">Thành viên:</span> </b>
+            {% if nhom.dsthanhvien.count <= 0 %}(Chưa có thành viên){% endif %}
+            {% for m in nhom.thanhviennhom_set.all %}
+                <span class="label {% if m.nhom_truong %}label-important{% elif not m.acitve %}label-warning{% else %}label-info{% endif %}">{{ m.user }}</span> {% if not forloop.last %},{% endif %}
+            {% endfor %}
         </div>
     </td>
-{% if not nhom.is_full_member %}
+
     <td>
         <div class="btn-toolbar pull-right">
             <div class="btn-group">
-                <a href="{% url jointogroup nhom.pk %}" class="btn btn-large ajax" data-method="get" data-replace-inner="#message" data-refresh="#dsnhom"><i class="icon-plus"></i>Tham gia</a>
+            {% if user in nhom.dsthanhvien.all %}
+                <a href="{{ nhom.get_absolute_url }}/out" class="btn btn-large btn-danger corfirm" data-method="post" data-replace-inner="#message" data-refresh="#dsnhom"><i class="icon-remove"></i> Rời khỏi nhóm</a>
+                {% else %}
+                    {% if not nhom.is_full_member %}
+                        <a href="{{ nhom.get_absolute_url }}/join" class="btn btn-large btn-info ajax" data-method="get" data-replace-inner="#message" data-refresh="#dsnhom"><i class="icon-plus"></i> Tham gia</a>
+                    {% endif %}
+            {% endif %}
             </div>
         </div>
     </td>
-{% else %}
-    <td></td>
-{% endif %}
-
 </tr>
+{% if forloop.last %}
+    <script>
+        $("#newgroupBtn").attr("href","{{ nhom.mon_hoc.get_absolute_url }}/taonhom");
+        $("#message").html("<div class='alert'><button type='button' class='close' data-dismiss='alert'>&times;</button>" +
+                "<strong>Chú thích: </strong>  " +
+                "<span class=\"label label-important\">Nhóm trưởng</span>  " +
+                "<span class=\"label label-warning\">Thành viên chưa được xác nhận</span>  " +
+                "<span class=\"label label-info\">Thành viên chính thức</span></div>");
+    </script>
+{% endif %}
 {% endfor %}
 {% else %}
 <tr class="error">
@@ -31,6 +48,3 @@
         </td>
 </tr>
 {% endif %}
-<script>
-    $("#newgroupBtn").attr("href",$("#monhocid").val());
-</script>

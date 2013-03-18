@@ -3,6 +3,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 import datetime
+from unidecode import unidecode
+from django.template.defaultfilters import slugify
+from django.conf import settings
 
 YEAR_CHOICES = []
 for i in range(2000, datetime.datetime.now().year + 1):
@@ -21,6 +24,13 @@ class MonHoc(models.Model):
 
     def __unicode__(self):
         return self.ten_mon
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('monhoc', (), {
+            'monhoc': slugify(unicode(unidecode(self.ten_mon))),
+            'monhocid': self.pk,
+        })
 
     class Meta:
         verbose_name = "Môn học"
@@ -45,12 +55,21 @@ class Nhom(models.Model):
         verbose_name = "Nhóm"
         verbose_name_plural = "Danh sách nhóm"
 
+    @models.permalink
+    def get_absolute_url(self):
+        return('nhom', (), {
+            'monhoc': slugify(unicode(unidecode(self.mon_hoc.ten_mon))),
+            'monhocid': self.mon_hoc_id,
+            'nhom': slugify(unicode(unidecode(self.ten_nhom))),
+            'nhomid': self.pk,
+        })
+
 
 class ThanhVienNhom(models.Model):
     user = models.ForeignKey(User, verbose_name='Tên thành viên')
     nhom = models.ForeignKey('Nhom', verbose_name='Nhóm tham gia')
     ngay_tham_gia = models.DateField(auto_now_add=True)
-    acitve = models.BooleanField('Kích hoạt', default=False)
+    acitve = models.BooleanField('Kích hoạt', default=not settings.NAMPNQ_GM_REQUIRED_ACTIVE)
     nhom_truong = models.BooleanField('Nhóm trưởng', default=False)
 
     class Meta:
@@ -66,3 +85,5 @@ class ThanhVienNhom(models.Model):
 
         if self.user.nhom_set.all().filter(mon_hoc_id=self.nhom.mon_hoc):
             raise ValidationError(u"Môn học %s bạn %s đã có nhóm" % (self.nhom.mon_hoc, self.user))
+        if self.nhom.is_full_member():
+            raise ValidationError(u"Nhóm này đã full rồi")

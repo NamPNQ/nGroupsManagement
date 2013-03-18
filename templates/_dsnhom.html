@@ -1,10 +1,10 @@
-<ul id="dsnhom" class="nav nav-list" data-refresh-url="{% url dsnhomjoined %}">
+<ul id="dsnhom" class="nav nav-list" data-refresh-url="{% url dsnhomjoined user %}">
     <li class="nav-header">Danh sách nhóm</li>
     {% if user.nhom_set.count <= 0 %}
         <b>Bạn chưa có nhóm!</b>
     {% else %}
         {% for group in user.nhom_set.all %}
-            <li><a href="#"><b>{{ group.mon_hoc }}</b><br><em>{{ group.ten_nhom }}</em></a></li>
+            <li><a href="{{ group.get_absolute_url }}"><b>{{ group.mon_hoc }}</b><br><em>{{ group.ten_nhom }}</em></a></li>
         {% endfor %}
     {% endif %}
 </ul>
