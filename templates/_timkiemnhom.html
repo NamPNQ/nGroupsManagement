@@ -67,6 +67,7 @@
                 escapeMarkup: function (m) { return m; } // we do not want to escape markup since we are displaying html in results
             });
         });
+        //Ajax Modal
         $(document).on('click','.modal-footer > button.corfirm',function(e){
             var $a = $(this).parent().parent();
             $a.modal('hide');
@@ -87,6 +88,19 @@
                     $('html, body').animate({
                         scrollTop: $("#message").offset().top-60
                     }, 20);
+                }});
+        });
+        //Ajax Modal Form
+        $(document).on('click','.modal-footer > button.submit',function(e){
+            var $a = $(this).parent().parent();
+            //$a.modal('hide');
+            $.ajax({
+                url: $a.attr('href'),
+                data:$($a.find('form')[0]).serialize(),
+                dataType:'json',
+                type : $a.attr('data-method'),
+                success:function(result){
+                    $a.find('.modal-body').html(result.html);
                 }});
         });
         $(document).on('click', 'a.ajax-modal', function (e) {

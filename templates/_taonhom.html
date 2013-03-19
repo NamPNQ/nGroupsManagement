@@ -16,10 +16,11 @@
 {{ form|bootstrap }}
 </form>
 {% if method_get %}
+{% comment %}
 <script>
     var $a = $("#taonhom").parent().parent();
     var $b = $($a).find('.modal-footer > button.submit');
-    $($b).on('click',function(e){
+    $($b).live('click',function(e){
         e.preventDefault();
         var dataForm = $('#taonhom').serialize();
         $.ajax({
@@ -35,5 +36,6 @@
     });
     $($b).html('Xác nhận');
 </script>
+{% endcomment %}
 {% endif %}
 {% endif %}

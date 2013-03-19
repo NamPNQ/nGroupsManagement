@@ -202,22 +202,16 @@ def taonhom(request, **kwargs):
         if 'monhocid' in kwargs:
             nhom = Nhom.objects.get(pk=kwargs['monhocid'])
             context = resquestForm(user=request.user, mon_hoc_id=nhom.mon_hoc, form=form, request=request)
-            #response = render_to_string("_taonhom.html", context)
         else:
-            #response = render_to_string("_taonhom.html", RequestContext(request, {'form': form,
-            #                                                                      'method_get': request.method == 'GET'
-            #}))
             context = RequestContext(request, {'form': form,
                                                'method_get': request.method == 'GET'})
 
     if request.method == 'POST':
-        Form = TaoNhomForm(request.POST)
-        if Form.is_valid():
-            context = saveForm(user=request.user, mon_hoc_id=Form.cleaned_data['mon_hoc'], form=Form, request=request)
-            #response = render_to_string("_taonhom.html", context)
+        form = TaoNhomForm(request.POST)
+        if form.is_valid():
+            context = saveForm(user=request.user, mon_hoc_id=form.cleaned_data['mon_hoc'], form=form, request=request)
         else:
-            context = RequestContext(request, {'form': Form})
-            #response = render_to_string("_taonhom.html", )
+            context = RequestContext(request, {'form': form})
     data = {
         'html': render_to_string("_taonhom.html", context)
     }
