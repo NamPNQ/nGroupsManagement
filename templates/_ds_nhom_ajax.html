@@ -1,3 +1,4 @@
+{% load isNhomTruong %}
 {% if nhoms %}
 {% for nhom in nhoms %}
 <tr class="{% if nhom.is_full_member %}error{% else %}info{% endif %}">
@@ -20,11 +21,14 @@
         <div class="btn-toolbar pull-right">
             <div class="btn-group">
             {% if user in nhom.dsthanhvien.all %}
-                <a href="{{ nhom.get_absolute_url }}/out" class="btn btn-large btn-danger ajax-modal" data-target = "#deleteModal" data-method="post" data-replace-inner="#message" data-refresh="#dsnhom"><i class="icon-remove"></i> Rời khỏi nhóm</a>
+                <a href="{{ nhom.get_absolute_url }}/out" class="btn btn-warning ajax-modal" data-target = "#deleteModal" data-method="post" data-replace-inner="#message" data-refresh="#dsnhom"><i class="icon-remove"></i> Bỏ nhóm</a>
                 {% else %}
                     {% if not nhom.is_full_member %}
-                        <a href="{{ nhom.get_absolute_url }}/join" class="btn btn-large btn-info ajax" data-method="get" data-replace-inner="#message" data-refresh="#dsnhom"><i class="icon-plus"></i> Tham gia</a>
+                        <a href="{{ nhom.get_absolute_url }}/join" class="btn btn-info ajax" data-method="get" data-replace-inner="#message" data-refresh="#dsnhom"><i class="icon-plus"></i> Tham gia</a>
                     {% endif %}
+            {% endif %}
+            {% if user.is_staff or user.pk|isNhomTruong:nhom.pk %}
+                <a href="{{ nhom.get_absolute_url }}/delete" class="btn btn-danger ajax-modal" data-target = "#deleteModal" data-method="post" data-replace-inner="#message" data-refresh="#dsnhom"><i class="icon-trash"></i> Xóa</a>
             {% endif %}
             </div>
         </div>

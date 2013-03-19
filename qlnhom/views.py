@@ -183,7 +183,7 @@ def taonhom(request, **kwargs):
 
     @check_user_exists_group_in_subject
     def saveForm(**kwargs):
-        g = kwargs['form'].save(commit=False)
+        g = kwargs['form'].save()
         from qlnhom.models import ThanhVienNhom
 
         m = ThanhVienNhom(user=kwargs['user'], nhom_id=g.pk, nhom_truong=True)
@@ -192,16 +192,10 @@ def taonhom(request, **kwargs):
               u" data-dismiss='alert'>&times;</button>" \
               u"<strong>Thông báo: </strong>Tạo nhóm" \
               u" thành công</div>"
-        try:
-            m.full_clean()
-            m.save()
-            g.save()
-        except ValidationError as e:
-            msg = ""
-            for message in e.messages:
-                msg += u"<div class='alert alert-error'>" \
-                       u"<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
-                       u"<strong>Lỗi: </strong> %s </div>" % message
+        m.save()
+        msg += u"<div class='alert alert-success'>" \
+               u"<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
+               u"<strong>Thông báo: </strong> Bạn trở thành nhóm trưởng </div>"
         return {'message': msg}
     if request.method == 'GET':
         form = TaoNhomForm()

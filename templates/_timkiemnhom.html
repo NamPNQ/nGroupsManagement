@@ -25,7 +25,7 @@
         <p>Bạn chắc chắn muốn rời khỏi nhóm này?</p>
     </div>
     <div class="modal-footer">
-        <button id="confirm" class="btn btn-danger submit">Uh,Chắc chắn</button>
+        <button id="confirm" class="btn btn-danger corfirm">Uh,Chắc chắn</button>
         <button id="cancel" class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">Không</button>
     </div>
 </div>
@@ -67,7 +67,7 @@
                 escapeMarkup: function (m) { return m; } // we do not want to escape markup since we are displaying html in results
             });
         });
-        $(document).on('click','.modal-footer > button.submit',function(e){
+        $(document).on('click','.modal-footer > button.corfirm',function(e){
             var $a = $(this).parent().parent();
             $a.modal('hide');
             $.ajax({
@@ -83,7 +83,10 @@
                         $.getJSON($(value).data('refresh-url'), function(data) {
                             $(value).replaceWith(data.html)
                         })
-                    })
+                    });
+                    $('html, body').animate({
+                        scrollTop: $("#message").offset().top-60
+                    }, 20);
                 }});
         });
         $(document).on('click', 'a.ajax-modal', function (e) {
