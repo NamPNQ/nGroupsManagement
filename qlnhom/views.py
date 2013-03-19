@@ -19,10 +19,32 @@ def ajax_required(f):
         ....
 
     """
+
     def wrap(request, *args, **kwargs):
         if not request.is_ajax():
             return HttpResponseBadRequest()
         return f(request, *args, **kwargs)
+
+    wrap.__doc__ = f.__doc__
+    wrap.__name__ = f.__name__
+    return wrap
+
+
+def check_user_exists_group_in_subject(f):
+    def wrap(**kwargs):
+        if ('user' in kwargs) and ('mon_hoc_id' in kwargs):
+            if not kwargs['user'].nhom_set.all().filter(mon_hoc_id=kwargs['mon_hoc_id']):
+                return f(**kwargs)
+            else:
+                msg = u"<div class='alert alert-error'>" \
+                      u"<button type='button' class='close'" \
+                      u" data-dismiss='alert'>&times;</button>" \
+                      u"<strong>Lỗi: </strong> Môn học này bạn" \
+                      u" đã có nhóm rồi. Không thể tạo thêm </div>"
+                return {'message': msg}
+        else:
+            return HttpResponseBadRequest
+
     wrap.__doc__ = f.__doc__
     wrap.__name__ = f.__name__
     return wrap
@@ -53,6 +75,7 @@ def listgroup(request):
             raise Http404
         else:
             from qlnhom.models import Nhom
+
             mon_hoc_id = request.POST['id']
             g = Nhom.objects.filter(mon_hoc_id=mon_hoc_id)
             response = json.dumps(_ds_nhom_data(request, g))
@@ -106,10 +129,11 @@ def json_lookup(request, queryset, field, limit=10, **kwargs):
 @ajax_required
 def jointogroup(request, **kwargs):
     from qlnhom.models import Nhom, ThanhVienNhom
+
     nhom = Nhom.objects.get(pk=kwargs['nhomid'])
     response = u"<div class='alert'><button type='button' class='close' data-dismiss='alert'>&times;</button>" \
-               u"<strong>Thông báo: </strong>Bạn đã tham gia nhóm thành công</div>"\
-               u"<script>$('a[href$=\"%s\"]')"\
+               u"<strong>Thông báo: </strong>Bạn đã tham gia nhóm thành công</div>" \
+               u"<script>$('a[href$=\"%s\"]')" \
                u".html('<i class=\"icon-remove\"></i> Rời khỏi nhóm')" \
                u".attr('data-method','POST')" \
                u".attr('data-target','#deleteModal')" \
@@ -147,59 +171,61 @@ def monhoc(request, **kwargs):
 def taonhom(request, **kwargs):
     from django.forms.models import modelform_factory
     from qlnhom.models import Nhom
+
     TaoNhomForm = modelform_factory(Nhom, exclude=("dsthanhvien",))
+
+    @check_user_exists_group_in_subject
+    def resquestForm(**kwargs):
+        kwargs['form'].fields["mon_hoc"].initial = kwargs['mon_hoc_id']
+        return RequestContext(request, {'form': form,
+                                        'method_get':
+                                        kwargs['request'].method == 'GET'})
+
+    @check_user_exists_group_in_subject
+    def saveForm(**kwargs):
+        g = kwargs['form'].save(commit=False)
+        from qlnhom.models import ThanhVienNhom
+
+        m = ThanhVienNhom(user=kwargs['user'], nhom_id=g.pk, nhom_truong=True)
+        msg = u"<div class='alert alert-success'>" \
+              u"<button type='button' class='close'" \
+              u" data-dismiss='alert'>&times;</button>" \
+              u"<strong>Thông báo: </strong>Tạo nhóm" \
+              u" thành công</div>"
+        try:
+            m.full_clean()
+            m.save()
+            g.save()
+        except ValidationError as e:
+            msg = ""
+            for message in e.messages:
+                msg += u"<div class='alert alert-error'>" \
+                       u"<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
+                       u"<strong>Lỗi: </strong> %s </div>" % message
+        return {'message': msg}
     if request.method == 'GET':
         form = TaoNhomForm()
         if 'monhocid' in kwargs:
             nhom = Nhom.objects.get(pk=kwargs['monhocid'])
-            if not request.user.nhom_set.all().filter(mon_hoc_id=nhom.mon_hoc):
-                form.fields["mon_hoc"].initial = kwargs['monhocid']
-                response = render_to_string("_taonhom.html", RequestContext(request, {'form': form,
-                                                                                      'method_get':
-                                                                                      request.method == 'GET'}))
-            else:
-                response = render_to_string("_taonhom.html", {'message': u"<div class='alert alert-error'>"
-                                                                         u"<button type='button' class='close'"
-                                                                         u" data-dismiss='alert'>&times;</button>"
-                                                                         u"<strong>Lỗi: </strong> Môn học này bạn"
-                                                                         u" đã có nhóm rồi. Không thể tạo thêm </div>"})
+            context = resquestForm(user=request.user, mon_hoc_id=nhom.mon_hoc, form=form, request=request)
+            #response = render_to_string("_taonhom.html", context)
         else:
-            response = render_to_string("_taonhom.html", RequestContext(request, {'form': form,
-                                                                                  'method_get':
-                                                                                  request.method == 'GET'}))
+            #response = render_to_string("_taonhom.html", RequestContext(request, {'form': form,
+            #                                                                      'method_get': request.method == 'GET'
+            #}))
+            context = RequestContext(request, {'form': form,
+                                               'method_get': request.method == 'GET'})
 
     if request.method == 'POST':
         Form = TaoNhomForm(request.POST)
         if Form.is_valid():
-            if not request.user.nhom_set.all().filter(mon_hoc_id=Form.cleaned_data['mon_hoc']):
-                g = Form.save()
-                from qlnhom.models import ThanhVienNhom
-                m = ThanhVienNhom(user=request.user, nhom_id=g.pk, nhom_truong=True)
-                msg = u"<div class='alert alert-success'>" \
-                      u"<button type='button' class='close'"\
-                      u" data-dismiss='alert'>&times;</button>" \
-                      u"<strong>Thông báo: </strong>Tạo nhóm"\
-                      u" thành công</div>"
-                try:
-                    m.full_clean()
-                    m.save()
-                except ValidationError as e:
-                    msg = ""
-                    for message in e.messages:
-                        msg += u"<div class='alert alert-error'>" \
-                               u"<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
-                               u"<strong>Lỗi: </strong> %s </div>" % message
-            else:
-                msg = u"<div class='alert alert-error'>" \
-                      u"<button type='button' class='close'"\
-                      u" data-dismiss='alert'>&times;</button>" \
-                      u"<strong>Lỗi: </strong> Môn học này bạn"\
-                      u" đã có nhóm rồi. Không thể tạo thêm </div>"
-            response = render_to_string("_taonhom.html", {'message': msg})
+            context = saveForm(user=request.user, mon_hoc_id=Form.cleaned_data['mon_hoc'], form=Form, request=request)
+            #response = render_to_string("_taonhom.html", context)
         else:
-            response = render_to_string("_taonhom.html", RequestContext(request, {'form': Form}))
+            context = RequestContext(request, {'form': Form})
+            #response = render_to_string("_taonhom.html", )
     data = {
-        'html': response
+        'html': render_to_string("_taonhom.html", context)
     }
     return HttpResponse(json.dumps(data), mimetype='application/json')
 
@@ -209,13 +235,14 @@ def taonhom(request, **kwargs):
 @ajax_required
 def outgroup(request, **kwargs):
     from qlnhom.models import Nhom, ThanhVienNhom
+
     nhom = Nhom.objects.get(pk=kwargs['nhomid'])
     if request.user in nhom.dsthanhvien.all():
         membership = ThanhVienNhom.objects.filter(user=request.user, nhom=nhom)
         membership.delete()
         response = u"<div class='alert alert-success'>" \
                    u"<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
-                   u"<strong>Thông báo: </strong>Bạn đã rời khỏi nhóm thành công</div>"\
+                   u"<strong>Thông báo: </strong>Bạn đã rời khỏi nhóm thành công</div>" \
                    u"<script>$('a[href$=\"%s\"]')" \
                    u".html('<i class=\"icon-plus\"></i> Tham gia')" \
                    u".attr('data-method','GET')" \
@@ -225,7 +252,7 @@ def outgroup(request, **kwargs):
 
     else:
         response = "<div class='alert alert-error'>" \
-                   "<button type='button' class='close' data-dismiss='alert'>&times;</button>"\
+                   "<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
                    "<strong>Thông báo: </strong>Bạn chưa tham gia nhóm này !</div>"
     data = {
         "html": response
