@@ -1,0 +1,47 @@
+{% load humanize %}
+{% if nhom.chude_set.all %}
+<div class="accordion" id="thaoluan">
+    <div class="accordion-group">
+            {% for t in nhom.chude_set.all %}
+                <div class="accordion-heading">
+                    <div class="accordion-toggle" data-toggle="collapse" data-parent="#thaoluan" href="#chude{{ t.pk }}">
+                        <p></p>
+                        <div style="clear:both;padding-bottom:5px;">
+                            <div style="float:left;width:250px;"><i class="icon-user"></i> <a href>{{ t.nguoi_tao }}</a>
+                            </div>
+                            <div style="float:left;width:250px;"><i class="icon-comment"></i> {{ t.binhluan_set.count }} Bình luận
+                            </div>
+                            <div style="float:left;"><i class="icon-time"></i> {{ t.ngay_tao|naturaltime }}
+                            </div>
+                        </div>
+                        <br>
+                        <div><a><b>{{ t.tieu_de }}</b></a></div>
+                    </div>
+                </div>
+                <div id="chude{{ t.pk }}" class="accordion-body collapse" data-href="{{ nhom.get_absolute_url }}/thaoluan/{{ t.pk }}">
+
+                </div>
+                {% if not forloop.last %}<hr>{% endif %}
+            {% endfor %}
+    </div>
+</div>
+<script>
+    $('.collapse').on('show', function () {
+        var $this = $(this);
+        if($this.attr('data-href'))
+        {
+            $this.html($.getJSON($this.attr('data-href'),function(data){
+                $this.html(data.html);
+                $this.removeAttr('style');
+            }));
+        }
+    })
+</script>
+{% else %}
+    <div class="well">
+        Chưa có chủ đề
+    </div>
+{% endif %}
+<div>
+    <a href="#" class="btn btn-success"><i class="icon-pencil"></i> Đăng chủ đề</a>
+</div>

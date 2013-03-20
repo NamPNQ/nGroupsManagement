@@ -7,47 +7,7 @@ from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.utils import simplejson as json
 from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
-
-
-def ajax_required(f):
-    """
-    AJAX request required decorator
-    use it in your views:
-
-    @ajax_required
-    def my_view(request):
-        ....
-
-    """
-
-    def wrap(request, *args, **kwargs):
-        if not request.is_ajax():
-            return HttpResponseBadRequest()
-        return f(request, *args, **kwargs)
-
-    wrap.__doc__ = f.__doc__
-    wrap.__name__ = f.__name__
-    return wrap
-
-
-def check_user_exists_group_in_subject(f):
-    def wrap(**kwargs):
-        if ('user' in kwargs) and ('mon_hoc_id' in kwargs):
-            if not kwargs['user'].nhom_set.all().filter(mon_hoc_id=kwargs['mon_hoc_id']):
-                return f(**kwargs)
-            else:
-                msg = u"<div class='alert alert-error'>" \
-                      u"<button type='button' class='close'" \
-                      u" data-dismiss='alert'>&times;</button>" \
-                      u"<strong>Lỗi: </strong> Môn học này bạn" \
-                      u" đã có nhóm rồi. Không thể tạo thêm </div>"
-                return {'message': msg}
-        else:
-            return HttpResponseBadRequest
-
-    wrap.__doc__ = f.__doc__
-    wrap.__name__ = f.__name__
-    return wrap
+from qlnhom.decorator import *
 
 
 @login_required
@@ -134,10 +94,10 @@ def jointogroup(request, **kwargs):
     response = u"<div class='alert'><button type='button' class='close' data-dismiss='alert'>&times;</button>" \
                u"<strong>Thông báo: </strong>Bạn đã tham gia nhóm thành công</div>" \
                u"<script>$('a[href$=\"%s\"]')" \
-               u".html('<i class=\"icon-remove\"></i> Rời khỏi nhóm')" \
+               u".html('<i class=\"icon-remove\"></i> Bỏ nhóm')" \
                u".attr('data-method','POST')" \
                u".attr('data-target','#deleteModal')" \
-               u".removeClass('btn-info ajax').addClass('btn-danger ajax-modal')" \
+               u".removeClass('btn-info ajax').addClass('btn-warning ajax-modal')" \
                u".attr('href','%s')</script>" % (request.get_full_path(), nhom.get_absolute_url() + "/out")
 
     join = ThanhVienNhom(user=request.user, nhom=nhom)
@@ -157,8 +117,18 @@ def jointogroup(request, **kwargs):
 
 
 @login_required
+@ajax_required
+@user_in_group_required
 def nhom(request, **kwargs):
-    pass
+    from qlnhom.models import Nhom
+    if request.method == "GET":
+        nhom = Nhom.objects.get(pk=kwargs['nhomid'])
+        data = {
+            'html': render_to_string('_nhom_detail.html', RequestContext(request, {'nhom': nhom}))
+        }
+        return HttpResponse(json.dumps(data), mimetype='application/json')
+    else:
+        return HttpResponseBadRequest()
 
 
 @login_required
@@ -177,9 +147,7 @@ def taonhom(request, **kwargs):
     @check_user_exists_group_in_subject
     def resquestForm(**kwargs):
         kwargs['form'].fields["mon_hoc"].initial = kwargs['mon_hoc_id']
-        return RequestContext(request, {'form': form,
-                                        'method_get':
-                                        kwargs['request'].method == 'GET'})
+        return RequestContext(request, {'form': form})
 
     @check_user_exists_group_in_subject
     def saveForm(**kwargs):
@@ -200,18 +168,18 @@ def taonhom(request, **kwargs):
     if request.method == 'GET':
         form = TaoNhomForm()
         if 'monhocid' in kwargs:
-            nhom = Nhom.objects.get(pk=kwargs['monhocid'])
-            context = resquestForm(user=request.user, mon_hoc_id=nhom.mon_hoc, form=form, request=request)
-        else:
-            context = RequestContext(request, {'form': form,
-                                               'method_get': request.method == 'GET'})
-
-    if request.method == 'POST':
-        form = TaoNhomForm(request.POST)
-        if form.is_valid():
-            context = saveForm(user=request.user, mon_hoc_id=form.cleaned_data['mon_hoc'], form=form, request=request)
+            context = resquestForm(user=request.user, mon_hoc_id=kwargs['monhocid'], form=form)
         else:
             context = RequestContext(request, {'form': form})
+
+    elif request.method == 'POST':
+        form = TaoNhomForm(request.POST)
+        if form.is_valid():
+            context = saveForm(user=request.user, mon_hoc_id=form.cleaned_data['mon_hoc'], form=form)
+        else:
+            context = RequestContext(request, {'form': form})
+    else:
+        context = {"message": "<h3>Method not support<h3>"}
     data = {
         'html': render_to_string("_taonhom.html", context)
     }
@@ -221,28 +189,53 @@ def taonhom(request, **kwargs):
 @login_required
 @require_POST
 @ajax_required
+@user_in_group_required
 def outgroup(request, **kwargs):
-    from qlnhom.models import Nhom, ThanhVienNhom
-
-    nhom = Nhom.objects.get(pk=kwargs['nhomid'])
-    if request.user in nhom.dsthanhvien.all():
-        membership = ThanhVienNhom.objects.filter(user=request.user, nhom=nhom)
-        membership.delete()
-        response = u"<div class='alert alert-success'>" \
-                   u"<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
-                   u"<strong>Thông báo: </strong>Bạn đã rời khỏi nhóm thành công</div>" \
-                   u"<script>$('a[href$=\"%s\"]')" \
-                   u".html('<i class=\"icon-plus\"></i> Tham gia')" \
-                   u".attr('data-method','GET')" \
-                   u".removeAttr('data-target')" \
-                   u".removeClass('btn-danger ajax-modal').addClass('btn-info ajax')" \
-                   u".attr('href','%s')</script>" % (request.get_full_path(), nhom.get_absolute_url() + "/join")
-
-    else:
-        response = "<div class='alert alert-error'>" \
-                   "<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
-                   "<strong>Thông báo: </strong>Bạn chưa tham gia nhóm này !</div>"
+    from qlnhom.models import ThanhVienNhom
+    membership = ThanhVienNhom.objects.filter(user=request.user, nhom=nhom)
+    membership.delete()
+    response = u"<div class='alert alert-success'>" \
+               u"<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
+               u"<strong>Thông báo: </strong>Bạn đã rời khỏi nhóm thành công</div>" \
+               u"<script>$('a[href$=\"%s\"]')" \
+               u".html('<i class=\"icon-plus\"></i> Tham gia')" \
+               u".attr('data-method','GET')" \
+               u".removeAttr('data-target')" \
+               u".removeClass('btn-warning ajax-modal').addClass('btn-info ajax')" \
+               u".attr('href','%s')</script>" % (request.get_full_path(), nhom.get_absolute_url() + "/join")
     data = {
         "html": response
     }
     return HttpResponse(json.dumps(data), mimetype="application/json")
+
+
+@login_required
+@require_POST
+@ajax_required
+@user_in_group_required
+def deletegroup(request, **kwargs):
+    from qlnhom.models import ThanhVienNhom, Nhom
+    m = ThanhVienNhom.objects.filter(user=request.user, nhom_id=kwargs['nhomid'])
+    if (m and m.all()[0].nhom_truong) or request.user.is_staff:
+        g = Nhom.objects.filter(pk=kwargs['nhomid']).all()
+        if g:
+            url = g[0].get_absolute_url()
+            g[0].delete()
+            response = "<div class='alert alert-success'>" \
+                       "<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
+                       "<strong>Thông báo: </strong>Xóa nhóm thành công!</div>" \
+                       "<script>$('a[href$=\"%s\"]').closest('tr')" \
+                       ".remove()</script>" % (url + "/delete")
+        else:
+            response = "<div class='alert alert-error'>" \
+                       "<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
+                       "<strong>Thông báo: </strong>Bạn đã gửi đi một yêu cầu không hợp lệ !</div>"
+
+    else:
+        response = "<div class='alert alert-error'>" \
+                   "<button type='button' class='close' data-dismiss='alert'>&times;</button>" \
+                   "<strong>Thông báo: </strong>Bạn đã gửi đi một yêu cầu không hợp lệ !</div>"
+    data = {
+        'html': response
+    }
+    return HttpResponse(json.dumps(data),mimetype='application/json')

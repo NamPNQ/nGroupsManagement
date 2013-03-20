@@ -21,7 +21,7 @@
         <div class="btn-toolbar pull-right">
             <div class="btn-group">
             {% if user in nhom.dsthanhvien.all %}
-                <a href="{{ nhom.get_absolute_url }}/out" class="btn btn-warning ajax-modal" data-target = "#deleteModal" data-method="post" data-replace-inner="#message" data-refresh="#dsnhom"><i class="icon-remove"></i> Bỏ nhóm</a>
+                <a href="{{ nhom.get_absolute_url }}/out" class="btn btn-warning ajax-modal" data-target = "#outModal" data-method="post" data-replace-inner="#message" data-refresh="#dsnhom"><i class="icon-remove"></i> Bỏ nhóm</a>
                 {% else %}
                     {% if not nhom.is_full_member %}
                         <a href="{{ nhom.get_absolute_url }}/join" class="btn btn-info ajax" data-method="get" data-replace-inner="#message" data-refresh="#dsnhom"><i class="icon-plus"></i> Tham gia</a>

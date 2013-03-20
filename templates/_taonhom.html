@@ -15,27 +15,4 @@
 {% csrf_token %}
 {{ form|bootstrap }}
 </form>
-{% if method_get %}
-{% comment %}
-<script>
-    var $a = $("#taonhom").parent().parent();
-    var $b = $($a).find('.modal-footer > button.submit');
-    $($b).live('click',function(e){
-        e.preventDefault();
-        var dataForm = $('#taonhom').serialize();
-        $.ajax({
-                url:$a.attr('href'),
-                type:$a.attr('data-method'),
-                data:dataForm,
-                success:function(data)
-                {
-                    $a.find('.modal-body').html(data.html)
-                }
-
-        })
-    });
-    $($b).html('Xác nhận');
-</script>
-{% endcomment %}
-{% endif %}
 {% endif %}

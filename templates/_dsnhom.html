@@ -4,7 +4,7 @@
         <b>Bạn chưa có nhóm!</b>
     {% else %}
         {% for group in user.nhom_set.all %}
-            <li><a href="{{ group.get_absolute_url }}"><b>{{ group.mon_hoc }}</b><br><em>{{ group.ten_nhom }}</em></a></li>
+            <li><a href="{{ group.get_absolute_url }}" class="ajax" data-replace-inner="#mainContent"><b>{{ group.mon_hoc }}</b><br><em>{{ group.ten_nhom }}</em></a></li>
         {% endfor %}
     {% endif %}
 </ul>

@@ -46,5 +46,12 @@ urlpatterns += patterns('qlnhom.views',
                         url(r'^(?P<monhoc>.+)-(?P<monhocid>\d+)/(?P<nhom>.+)-(?P<nhomid>\d+)/join$', 'jointogroup',
                                                                                                 name="jointogroup"),
                         url(r'^(?P<monhoc>.+)-(?P<monhocid>\d+)/(?P<nhom>.+)-(?P<nhomid>\d+)/out$', 'outgroup',
-                            name="outgroup")
+                            name="outgroup"),
+                        url(r'^(?P<monhoc>.+)-(?P<monhocid>\d+)/(?P<nhom>.+)-(?P<nhomid>\d+)/delete$', 'deletegroup',),
 )
+urlpatterns += patterns('thaoluan.views',
+                        url(r'^(?P<monhoc>.+)-(?P<monhocid>\d+)/'
+                            r'(?P<nhom>.+)-(?P<nhomid>\d+)/thaoluan$', 'thaoluannhom') ,
+                        url(r'^(?P<monhoc>.+)-(?P<monhocid>\d+)/'
+                            r'(?P<nhom>.+)-(?P<nhomid>\d+)/thaoluan/(?P<thaoluanid>.+)$', 'thaoluanchitiet'),
+                        )
