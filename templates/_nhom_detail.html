@@ -15,8 +15,8 @@
     <span class="label label-inverse">{{ m.user }}</span> {% if not forloop.last %},{% endif %}
 {% endfor %}
 </div>
-<ul class="nav nav-tabs">
-    <li class="active"><a href="#thaoluan" data-toggle="tab">Thảo Luận</a></li>
+<ul class="nav nav-tabs" id="nhomTab">
+    <li><a href="#thaoluan" data-toggle="tab">Thảo Luận</a></li>
     <li><a href="#phancong" data-toggle="tab">Phân Công Nhóm</a></li>
     <li><a href="#binhchon" data-toggle="tab">Bình Chọn</a></li>
     {% if user.pk|isNhomTruong:nhom.pk %}
@@ -24,10 +24,23 @@
     {% endif %}
 </ul>
 <div class="tab-content">
-    <div class="tab-pane active" id="thaoluan">{% include '_nhom_thao_luan.html' %}</div>
-    <div class="tab-pane" id="phancong">{% include '_nhom_phan_cong.html' %}</div>
-    <div class="tab-pane" id="binhchon">{% include '_nhom_binh_chon.html' %}</div>
+    <div class="tab-pane" id="thaoluan" data-href="{{ nhom.get_absolute_url }}/thaoluan"></div>
+    <div class="tab-pane" id="phancong" data-href="{{ nhom.get_absolute_url }}/phancong"></div>
+    <div class="tab-pane" id="binhchon" data-href="{{ nhom.get_absolute_url }}/binhchon"></div>
     {% if user.pk|isNhomTruong:nhom.pk %}
     <div class="tab-pane" id="quanli">{% include '_nhom_quan_li.html' %}</div>
     {% endif %}
 </div>
+<script>
+    $('a[data-toggle="tab"]').on('show', function (e) {
+        var $a = $($(e.target).attr('href'));
+        if($a.attr('data-href'))
+        {
+            $.getJSON($a.attr('data-href'), function(data)
+            {
+                $a.html(data.html);
+            })
+        }
+    });
+    $('a[href="#thaoluan"]').tab('show');
+</script>

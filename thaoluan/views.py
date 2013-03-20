@@ -1,5 +1,4 @@
 # Create your views here.
-from django.shortcuts import render_to_response
 from django.utils import simplejson as json
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -9,8 +8,10 @@ from django.template import RequestContext
 @ajax_required
 @user_in_group_required
 def thaoluannhom(request, **kwargs):
+    from qlnhom.models import Nhom
+    nhom = Nhom.objects.get(pk=kwargs['nhomid'])
     data = {
-        'html': render_to_string('_nhom_thaoluannhom.html')
+        'html': render_to_string('_nhom_thao_luan.html', RequestContext(request, {'nhom': nhom}))
     }
     return  HttpResponse(json.dumps(data), mimetype='application/json')
 
