@@ -42,11 +42,7 @@ function check_rate(){
     });
 }
 
-$("body").append("<div 
-
-style=\"position:fixed;right:20px;bottom:0px;height:418px;width:380px;display:block;background:#fff;border-top:1px solid 
-
-#000;border-left:1px solid #000;border-right:1px solid #000;border-radius:3px 3px 0px 0px;\" id=\"liketool\"></div>");
+$("body").append("<div style=\"position:fixed;right:20px;bottom:0px;height:418px;width:380px;display:block;background:#fff;border-top:1px solid #000;border-left:1px solid #000;border-right:1px solid #000;border-radius:3px 3px 0px 0px;\" id=\"liketool\"></div>");
 $("div#liketool").html("<h2><a href=\"http://hs2t.com/\">Liketool - Hs2T.com</a></h2><small id=\"countdown\" style=\"color:#000;\"></small>");
 checktime();
 check_rate();
