@@ -55,11 +55,6 @@ check_rate();
 function appendAlert(msg){
     $("div#liketool").append(msg);
 }
-var iframe = "<iframe width='468' height='60' frameborder='0' 
-
-src='http://www.ptp22.com/seo.php?username=leeshin456&format=468x60' marginwidth='0' marginheight='0' vspace='0' hspace='0' allowtransparency='true' scrolling='no'></iframe>";
-//$("div#body center").eq(0).html(iframe);
-
 
 appendAlert("<br /><b>Start!</b><br />");
 appendAlert("Total: "+$("div center iframe").size()+" likes");
