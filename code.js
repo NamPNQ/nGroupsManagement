@@ -4,9 +4,7 @@ function checktime(){
         retime="Cảm ơn "+user_ten+" đã tin tưởng và và sử dụng tool.<br />Bạn được sử dụng tool vĩnh viễn.";
     }
     else if(extime > 0){
-        retime="Cảm ơn "+user_ten+" đã tin tưởng và và sử dụng tool.<br />Bạn còn được sử dụng tool trong <span 
-
-id=\"countdown\"></span> nữa.";
+        retime="Cảm ơn "+user_ten+" đã tin tưởng và và sử dụng tool.<br />Bạn còn được sử dụng tool trong <span id=\"countdown\"></span> nữa.";
         var countdowntime=self.setInterval(function(){counttimedown()},1000);
     }
     else{
